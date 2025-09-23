@@ -118,7 +118,7 @@ install_docker() {
     # Добавление пользователя в группу docker, если еще не там
     if ! groups "$USER" | grep -q '\bdocker\b'; then
         log "Добавление пользователя $USER в группу docker..."
-        sudo usmod -aG docker "$USER"
+        sudo usermod -aG docker "$USER"
         warning "Для применения изменений группы docker требуется перезагрузка или перелогин."
         log "Вы можете выполнить 'sudo reboot' после завершения установки."
     fi
