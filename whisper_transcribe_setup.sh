@@ -163,4 +163,3 @@ echo "python3 whisper_transcribe.py ./audio large ./results"
 echo ""
 echo "Доступные модели (от быстрой к точной):"
 echo "tiny, base, small, medium, large"
-```
