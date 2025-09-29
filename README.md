@@ -37,7 +37,7 @@
 
 1.  **Клонируйте репозиторий:**
     ```bash
-    git clone https://github.com/empenoso/offline-audio-transcriber
+    git clone https://github.com/snorck/offline-video-transcriber-web
     cd offline-audio-transcriber
     ```
 
