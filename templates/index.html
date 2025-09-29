@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="card task-card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">📁 Обработка одного файла</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    {{ single_form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ single_form.file.label(class="form-label") }}
+                        {{ single_form.file(class="form-control") }}
+                        {% if single_form.file.errors %}
+                            <div class="text-danger">
+                                {% for error in single_form.file.errors %}
+                                    <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ single_form.model_size.label(class="form-label") }}
+                        {{ single_form.model_size(class="form-select") }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ single_form.language.label(class="form-label") }}
+                        {{ single_form.language(class="form-select") }}
+                    </div>
+
+                    {{ single_form.submit(class="btn btn-success w-100") }}
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card task-card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">📂 Пакетная обработка</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">
+                    Для пакетной обработки загрузите файлы в папку <code>uploads/</code> и нажмите кнопку ниже.
+                </p>
+                
+                <form method="POST" action="{{ url_for('batch_process') }}">
+                    {{ batch_form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ batch_form.model_size.label(class="form-label") }}
+                        {{ batch_form.model_size(class="form-select") }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ batch_form.language.label(class="form-label") }}
+                        {{ batch_form.language(class="form-select") }}
+                    </div>
+
+                    {{ batch_form.submit(class="btn btn-warning w-100") }}
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">📊 Информация о системе</h5>
+            </div>
+            <div class="card-body">
+                <div id="system-info">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Загрузка...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">📋 История обработки</h5>
+            </div>
+            <div class="card-body">
+                {% if processed_files %}
+                    <div class="file-list">
+                        {% for task in processed_files %}
+                            <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                                <div>
+                                    <strong>{{ task.id }}</strong>
+                                    <small class="text-muted">({{ task.files|length }} файлов)</small>
+                                </div>
+                                <a href="{{ url_for('results', task_id=task.id) }}" class="btn btn-sm btn-outline-primary">
+                                    Просмотреть
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">Нет обработанных файлов</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Загрузка информации о системе
+fetch('/system_info')
+    .then(response => response.json())
+    .then(data => {
+        const gpuStatus = data.gpu_available ? 
+            `<span class="badge bg-success">Доступен</span> ${data.gpu_info}` : 
+            '<span class="badge bg-secondary">Не доступен</span>';
+        
+        document.getElementById('system-info').innerHTML = `
+            <p><strong>GPU:</strong> ${gpuStatus}</p>
+            <p><strong>PyTorch версия:</strong> ${data.pytorch_version}</p>
+            <p><strong>Whisper:</strong> <span class="badge bg-success">Доступен</span></p>
+        `;
+    })
+    .catch(error => {
+        document.getElementById('system-info').innerHTML = '<p class="text-danger">Ошибка загрузки информации о системе</p>';
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-warning">
+                <h5 class="mb-0">⏳ Обработка файлов</h5>
+            </div>
+            <div class="card-body text-center">
+                <div id="progress-info">
+                    <div class="spinner-border text-warning mb-3" role="status">
+                        <span class="visually-hidden">Обработка...</span>
+                    </div>
+                    <p>Загрузка модели и начало обработки...</p>
+                </div>
+                
+                <div class="progress mb-3" style="height: 25px;">
+                    <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                         role="progressbar" style="width: 0%">0%</div>
+                </div>
+                
+                <div id="current-file" class="text-muted mb-3"></div>
+                
+                <div id="completed-message" style="display: none;">
+                    <div class="alert alert-success">
+                        <h5>✅ Обработка завершена!</h5>
+                        <p>Файлы успешно обработаны и готовы к просмотру.</p>
+                        <a id="results-link" href="#" class="btn btn-success">Просмотреть результаты</a>
+                    </div>
+                </div>
+                
+                <div id="error-message" style="display: none;">
+                    <div class="alert alert-danger">
+                        <h5>❌ Ошибка обработки</h5>
+                        <p id="error-text"></p>
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary">Вернуться назад</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const taskId = "{{ task_id }}";
+
+function updateProgress() {
+    fetch(`/api/progress/${taskId}`)
+        .then(response => response.json())
+        .then(data => {
+            console.log('Progress data:', data);
+            
+            if (data.status === 'completed') {
+                document.getElementById('progress-bar').style.width = '100%';
+                document.getElementById('progress-bar').textContent = '100%';
+                document.getElementById('progress-bar').classList.remove('progress-bar-animated');
+                document.getElementById('completed-message').style.display = 'block';
+                document.getElementById('results-link').href = `/results/${taskId}`;
+                document.getElementById('progress-info').style.display = 'none';
+            } 
+            else if (data.status === 'error') {
+                document.getElementById('error-text').textContent = data.error;
+                document.getElementById('error-message').style.display = 'block';
+                document.getElementById('progress-info').style.display = 'none';
+            }
+            else if (data.status === 'processing') {
+                const percent = (data.current / data.total) * 100;
+                document.getElementById('progress-bar').style.width = percent + '%';
+                document.getElementById('progress-bar').textContent = Math.round(percent) + '%';
+                document.getElementById('current-file').textContent = `Обрабатывается: ${data.current_file}`;
+                
+                // Продолжаем опрос
+                setTimeout(updateProgress, 1000);
+            }
+            else {
+                // Продолжаем опрос
+                setTimeout(updateProgress, 1000);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching progress:', error);
+            setTimeout(updateProgress, 2000);
+        });
+}
+
+// Запускаем первый опрос
+updateProgress();
+</script>
+{% endblock %}

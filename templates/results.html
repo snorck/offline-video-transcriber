@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">✅ Результаты обработки</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>Модель:</strong> {{ result.model_size }}<br>
+                    <strong>Устройство:</strong> {{ result.device }}<br>
+                    {% if result.total_files %}
+                        <strong>Обработано файлов:</strong> {{ result.total_files }}
+                    {% endif %}
+                </div>
+
+                {% if result.results %}
+                    {# Пакетная обработка #}
+                    <h6>Обработанные файлы:</h6>
+                    <div class="file-list">
+                        {% for file_result in result.results %}
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h6>{{ file_result.file.split('/')[-1] }}</h6>
+                                    <p class="text-muted">{{ file_result.text[:200] }}{% if file_result.text|length > 200 %}...{% endif %}</p>
+                                    <div class="btn-group">
+                                        <a href="{{ url_for('download_file', task_id=task_id, filename=file_result.txt_path.split('/')[-1]) }}" 
+                                           class="btn btn-sm btn-outline-primary">Скачать TXT</a>
+                                        {% if file_result.srt_path %}
+                                            <a href="{{ url_for('download_file', task_id=task_id, filename=file_result.srt_path.split('/')[-1]) }}" 
+                                               class="btn btn-sm btn-outline-secondary">Скачать SRT</a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mt-3">
+                        <a href="{{ url_for('download_file', task_id=task_id, filename='all_transcripts.txt') }}" 
+                           class="btn btn-primary">Скачать все тексты (TXT)</a>
+                        <a href="{{ url_for('download_file', task_id=task_id, filename='transcripts_detailed.json') }}" 
+                           class="btn btn-secondary">Скачать детальный JSON</a>
+                    </div>
+                {% else %}
+                    {# Одиночная обработка #}
+                    <h6>Текст распознавания:</h6>
+                    <div class="border p-3 bg-light rounded mb-3" style="white-space: pre-line;">
+                        {{ result.text }}
+                    </div>
+                    
+                    <div class="btn-group">
+                        <a href="{{ url_for('download_file', task_id=task_id, filename=result.txt_path.split('/')[-1]) }}" 
+                           class="btn btn-primary">Скачать TXT</a>
+                        {% if result.srt_path %}
+                            <a href="{{ url_for('download_file', task_id=task_id, filename=result.srt_path.split('/')[-1]) }}" 
+                               class="btn btn-secondary">Скачать SRT</a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="mt-3">
+            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">← Вернуться на главную</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
